@@ -1,0 +1,9 @@
+chrome-profile*/
+tasks.json
+.env
+__pycache__/
+*.pyc
+.venv/
+scripts/
+node_modules/
+.playwright-mcp/

@@ -1,0 +1,20 @@
+{
+  "name": "tandem",
+  "version": "1.0.0",
+  "description": "One browser, two drivers — a hosted, live browser you and Claude Code agents drive together in real time.",
+  "scripts": {
+    "start": "./run.sh"
+  },
+  "keywords": [
+    "claude-code",
+    "browser-automation",
+    "ai-agent",
+    "playwright",
+    "cdp",
+    "remote-browser"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@playwright/mcp": "^0.0.76"
+  }
+}

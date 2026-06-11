@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tandem</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img src="/static/favicon.svg" alt="" class="logo">
+    <span class="brand-name">Tandem</span>
+    <span class="dot" id="conn-dot" title="connection"></span>
+  </div>
+  <div class="hint">click the page to interact &middot; logins persist &middot; you &amp; the agent share one browser</div>
+</header>
+
+<main>
+  <section id="browser-pane">
+    <div id="tabstrip">
+      <div id="tabs"></div>
+      <button id="tab-new" title="new tab">+</button>
+    </div>
+    <div id="toolbar">
+      <button id="nav-back" title="back">&#9664;</button>
+      <button id="nav-fwd" title="forward">&#9654;</button>
+      <button id="nav-reload" title="reload">&#10227;</button>
+      <input id="urlbar" placeholder="search or enter url" spellcheck="false"
+        autocomplete="off" autocapitalize="off" autocorrect="off"
+        inputmode="url" enterkeyhint="go">
+      <button id="nav-go" title="go">Go</button>
+    </div>
+    <div id="canvas-wrap">
+      <canvas id="screen" width="1280" height="800" tabindex="0"></canvas>
+      <!-- offscreen catcher: tapping the canvas on a phone focuses this so the
+           soft keyboard appears and keystrokes are forwarded to the page -->
+      <input id="kbcatch" autocomplete="off" autocapitalize="off" autocorrect="off"
+        spellcheck="false" aria-hidden="true" tabindex="-1">
+      <div id="agent-banner" class="hidden">&#9679; agent is driving &mdash; you can still take over</div>
+      <div id="overlay" class="hidden"><div>reconnecting&hellip;</div></div>
+    </div>
+  </section>
+
+  <aside id="agent-panel">
+    <div class="panel-head">
+      <span>Agent</span>
+      <span id="task-status" class="status idle">idle</span>
+    </div>
+    <div id="feed"></div>
+    <div id="composer">
+      <textarea id="instruction" rows="3"
+        placeholder="Tell the agent what to do in the browser&hellip;&#10;e.g. open hacker news and summarize the top 5 stories"></textarea>
+      <div class="composer-row">
+        <button id="run" class="primary">Run</button>
+        <button id="stop" class="danger hidden">Stop</button>
+        <button id="history-toggle" title="task history">history</button>
+      </div>
+    </div>
+    <div id="history" class="hidden"></div>
+  </aside>
+</main>
+
+<nav id="mobile-tabbar">
+  <button id="mtab-browser" class="active">&#127760; Browser</button>
+  <button id="mtab-agent">&#129302; Agent<span id="agent-badge" class="hidden"></span></button>
+</nav>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

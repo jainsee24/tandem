@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "browser": {
+      "command": "node_modules/.bin/playwright-mcp",
+      "args": ["--cdp-endpoint", "http://localhost:9222"]
+    }
+  }
+}

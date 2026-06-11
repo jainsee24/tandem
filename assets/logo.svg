@@ -1,0 +1,20 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tandem">
+  <defs>
+    <linearGradient id="human" x1="20" y1="28" x2="56" y2="68" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8aa4ff"/>
+      <stop offset="1" stop-color="#5b7bff"/>
+    </linearGradient>
+    <linearGradient id="agent" x1="40" y1="28" x2="78" y2="68" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#48e3c8"/>
+      <stop offset="1" stop-color="#23b3a6"/>
+    </linearGradient>
+  </defs>
+  <!-- agent ring (drawn first, sits under at the left crossing) -->
+  <circle cx="58" cy="48" r="20" stroke="url(#agent)" stroke-width="8"/>
+  <!-- human ring -->
+  <circle cx="38" cy="48" r="20" stroke="url(#human)" stroke-width="8"/>
+  <!-- interlock: redraw the top-right arc of the agent ring so it weaves over the human ring -->
+  <path d="M58 28 A20 20 0 0 1 76.6 41.2" stroke="url(#agent)" stroke-width="8" stroke-linecap="round"/>
+  <!-- shared focus dot where the two overlap: the one live browser -->
+  <circle cx="48" cy="48" r="5" fill="#dfe6ff"/>
+</svg>

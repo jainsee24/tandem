@@ -1,0 +1,36 @@
+<svg width="1280" height="360" viewBox="0 0 1280 360" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tandem — one browser, two drivers">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0e1014"/>
+      <stop offset="1" stop-color="#15171d"/>
+    </linearGradient>
+    <linearGradient id="human" x1="470" y1="120" x2="560" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8aa4ff"/><stop offset="1" stop-color="#5b7bff"/>
+    </linearGradient>
+    <linearGradient id="agent" x1="540" y1="120" x2="640" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#48e3c8"/><stop offset="1" stop-color="#23b3a6"/>
+    </linearGradient>
+    <linearGradient id="word" x1="470" y1="150" x2="900" y2="210" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/><stop offset="1" stop-color="#c9d3ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="360" fill="url(#bg)"/>
+  <!-- subtle motion streaks -->
+  <g stroke="#6c8cff" stroke-opacity="0.08" stroke-width="2">
+    <line x1="80" y1="70" x2="300" y2="70"/>
+    <line x1="60" y1="300" x2="340" y2="300"/>
+    <line x1="980" y1="60" x2="1230" y2="60"/>
+    <line x1="1000" y1="305" x2="1220" y2="305"/>
+  </g>
+  <!-- logo mark -->
+  <g transform="translate(150,110)">
+    <circle cx="92" cy="70" r="34" stroke="url(#agent)" stroke-width="13"/>
+    <circle cx="58" cy="70" r="34" stroke="url(#human)" stroke-width="13"/>
+    <path d="M92 36 A34 34 0 0 1 123.4 58" stroke="url(#agent)" stroke-width="13" stroke-linecap="round"/>
+    <circle cx="75" cy="70" r="8.5" fill="#dfe6ff"/>
+  </g>
+  <!-- wordmark -->
+  <text x="470" y="172" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="92" font-weight="700" fill="url(#word)" letter-spacing="-2">Tandem</text>
+  <text x="474" y="222" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="29" font-weight="500" fill="#9aa3b2">one browser, two drivers — you and your AI agent, live</text>
+  <text x="474" y="270" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="20" fill="#6c8cff">a hosted browser you and Claude Code drive together, in real time</text>
+</svg>

@@ -14,7 +14,7 @@
     <span class="brand-name">Tandem</span>
     <span class="dot" id="conn-dot" title="connection"></span>
   </div>
-  <div class="hint">click the page to interact &middot; logins persist &middot; you &amp; the agent share one browser</div>
+  <div class="hint">click the page to interact &middot; copy/paste works &middot; logins persist &middot; you &amp; the agent share one browser</div>
 </header>
 
 <main>
@@ -27,19 +27,41 @@
       <button id="nav-back" title="back">&#9664;</button>
       <button id="nav-fwd" title="forward">&#9654;</button>
       <button id="nav-reload" title="reload">&#10227;</button>
+      <button id="nav-stop" class="hidden" title="stop loading">&#10005;</button>
       <input id="urlbar" placeholder="search or enter url" spellcheck="false"
         autocomplete="off" autocapitalize="off" autocorrect="off"
         inputmode="url" enterkeyhint="go">
       <button id="nav-go" title="go">Go</button>
+      <button id="nav-paste" title="paste your clipboard into the page">&#128203;</button>
     </div>
+    <div id="progress"><div id="progress-bar"></div></div>
     <div id="canvas-wrap">
       <canvas id="screen" width="1280" height="800" tabindex="0"></canvas>
-      <!-- offscreen catcher: tapping the canvas on a phone focuses this so the
-           soft keyboard appears and keystrokes are forwarded to the page -->
-      <input id="kbcatch" autocomplete="off" autocapitalize="off" autocorrect="off"
-        spellcheck="false" aria-hidden="true" tabindex="-1">
+      <!-- offscreen catcher: clicking/tapping the canvas focuses this so ALL
+           keyboard input (desktop keys, phone soft keyboard, copy/cut/paste)
+           arrives here and is forwarded to the remote page -->
+      <textarea id="kbcatch" autocomplete="off" autocapitalize="off" autocorrect="off"
+        spellcheck="false" aria-hidden="true" tabindex="-1"></textarea>
       <div id="agent-banner" class="hidden">&#9679; agent is driving &mdash; you can still take over</div>
       <div id="overlay" class="hidden"><div>reconnecting&hellip;</div></div>
+      <!-- native chrome dialogs (alert/confirm/prompt, file picker) are drawn
+           outside the screencast; the server intercepts them and they are
+           rendered here instead -->
+      <div id="dialog" class="hidden" role="dialog">
+        <div class="dlg-box">
+          <div class="dlg-title" id="dlg-title">The page says</div>
+          <div class="dlg-msg" id="dlg-msg"></div>
+          <input id="dlg-input" class="hidden" autocomplete="off">
+          <div id="dlg-file" class="hidden">
+            <input type="file" id="dlg-file-input">
+            <div class="dlg-hint">pick a file from this device; it is uploaded into the remote page</div>
+          </div>
+          <div class="dlg-row">
+            <button id="dlg-cancel">Cancel</button>
+            <button id="dlg-ok" class="primary">OK</button>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -49,12 +71,27 @@
       <span id="task-status" class="status idle">idle</span>
     </div>
     <div id="feed"></div>
+    <div id="resume-bar" class="hidden">
+      <span class="rb-text">&#8617; Continuing <b id="resume-title"></b></span>
+      <button id="resume-new" title="start a fresh conversation instead">start fresh</button>
+    </div>
     <div id="composer">
       <textarea id="instruction" rows="3"
         placeholder="Tell the agent what to do in the browser&hellip;&#10;e.g. open hacker news and summarize the top 5 stories"></textarea>
+      <div id="attach-chips" class="hidden"></div>
       <div class="composer-row">
+        <input type="file" id="file-input" multiple hidden>
+        <button id="attach" title="attach files for the agent to read or upload">&#128206;</button>
+        <select id="model" title="model · effort (applies to a new conversation)">
+          <option value="claude-opus-5|medium">Opus 5 · fast</option>
+          <option value="claude-opus-5|high">Opus 5 · thorough</option>
+          <option value="claude-fable-5-1|medium">Fable 5.1 · smartest</option>
+          <option value="claude-sonnet-5|low">Sonnet 5 · fastest</option>
+          <option value="claude-haiku-4-5|low">Haiku 4.5 · cheapest</option>
+        </select>
         <button id="run" class="primary">Run</button>
         <button id="stop" class="danger hidden">Stop</button>
+        <button id="new-chat" title="start a fresh conversation">New</button>
         <button id="history-toggle" title="task history">history</button>
       </div>
     </div>

@@ -12,6 +12,7 @@ If $DISPLAY is already set, that real display is used instead of Xvfb.
 import asyncio
 import logging
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -21,9 +22,43 @@ import httpx
 
 log = logging.getLogger("chrome")
 
-CDP_PORT = 9222
+# Configurable so tandem doesn't fight another CDP client (e.g. a separate
+# automation Chrome) that may already hold the default 9222. Keep this in sync
+# with the --cdp-endpoint port in .mcp.json.
+CDP_PORT = int(os.environ.get("CDP_PORT", "9222"))
 CDP_HTTP = f"http://localhost:{CDP_PORT}"
-SCREEN_W, SCREEN_H = 1280, 800
+# The virtual display is a plausible laptop panel; the Chrome *window* inside it
+# is sized so its content area is exactly VIEWPORT_W×VIEWPORT_H (see cdp.py
+# fit_window). Keeping screen > window is what a real desktop looks like —
+# the old 1280×800 screen + forced 1280×800 viewport produced
+# innerHeight > outerHeight, a well-known automation tell.
+SCREEN_W, SCREEN_H = 1920, 1080
+VIEWPORT_W, VIEWPORT_H = 1280, 800
+# Chrome's own frame + tab strip + toolbar height under Xvfb (no window
+# manager, so chrome draws its own title bar): measured 143px. cdp.py
+# re-measures on connect and corrects the window bounds.
+CHROME_UI_H_GUESS = 143
+
+
+def chrome_major(chrome_bin: str) -> str:
+    """Major version of the installed browser ("150"), for the UA string."""
+    try:
+        out = subprocess.run([chrome_bin, "--version"], capture_output=True,
+                             text=True, timeout=10).stdout
+        m = re.search(r"(\d+)\.\d+\.\d+\.\d+", out)
+        if m:
+            return m.group(1)
+    except Exception:
+        pass
+    return "150"
+
+
+def clean_user_agent(major: str) -> str:
+    """Stock Google Chrome UA for this platform. The snap/Ubuntu build advertises
+    itself as "(X11; Ubuntu; Linux x86_64)" — real Chrome never carries the
+    "Ubuntu" token, so bot scorers treat it as a packaged Chromium."""
+    return (f"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+            f"(KHTML, like Gecko) Chrome/{major}.0.0.0 Safari/537.36")
 
 
 class ChromeManager:
@@ -118,12 +153,40 @@ class ChromeManager:
             f"--user-data-dir={self.profile_dir.resolve()}",
             "--no-first-run",
             "--no-default-browser-check",
-            f"--window-size={SCREEN_W},{SCREEN_H}",
+            f"--window-size={VIEWPORT_W},{VIEWPORT_H + CHROME_UI_H_GUESS}",
+            "--window-position=0,0",
             # anti-automation-fingerprint
             "--disable-blink-features=AutomationControlled",
             "--lang=en-US",
             "--disable-features=Translate,AutomationControlled",
+            f"--user-agent={clean_user_agent(chrome_major(self.chrome_bin))}",
+            # responsiveness: never throttle timers/rendering because a tab or
+            # window "isn't visible" (under Xvfb nothing is, as far as chrome
+            # knows), and skip background services the pages never need. None
+            # of these is observable from page JS.
+            "--disable-background-timer-throttling",
+            "--disable-renderer-backgrounding",
+            "--disable-backgrounding-occluded-windows",
+            "--disable-hang-monitor",
+            "--disable-ipc-flooding-protection",
+            "--disable-sync",
+            "--disable-component-update",
+            "--disable-default-apps",
+            "--metrics-recording-only",
+            # a restart after SIGTERM otherwise shows the "restore pages?"
+            # infobar, which shrinks the content area until someone closes it
+            "--hide-crash-restore-bubble",
+            "--disable-session-crashed-bubble",
         ]
+        # Egress IP is the one bot signal a fingerprint patch can't fix: this box
+        # sits on a university/datacenter ASN, and some Cloudflare zones mitigate that ASN with
+        # an interactive challenge no amount of stealth clears. Point this at a
+        # residential proxy/VPN to leave via a clean IP.
+        #   CHROME_PROXY=socks5://127.0.0.1:1080   (or http://host:port)
+        proxy = os.environ.get("CHROME_PROXY", "").strip()
+        if proxy:
+            args.append(f"--proxy-server={proxy}")
+            log.info("chrome routing through proxy %s", proxy)
         if self.headless:
             # broken NVIDIA driver hangs renderer GPU context creation in headless
             args += ["--headless=new", "--disable-gpu"]
@@ -180,7 +243,7 @@ class ChromeManager:
                 except httpx.HTTPError:
                     pass
                 if asyncio.get_event_loop().time() > deadline:
-                    raise RuntimeError("chrome did not become ready on :9222")
+                    raise RuntimeError(f"chrome did not become ready on :{CDP_PORT}")
                 await asyncio.sleep(0.25)
 
     async def stop(self):

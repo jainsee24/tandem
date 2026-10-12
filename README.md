@@ -52,13 +52,14 @@ Long-running browser automation breaks in a dozen boring ways. Tandem handles th
 - **Self-healing Chrome.** A watchdog relaunches Chrome if it ever dies and the live view reconnects automatically — your logins survive in the persistent profile.
 - **Resilient CDP layer.** Page-level DevTools sockets survive cross-process navigations; dropped navigations are detected and retried; a stalled screencast re-arms itself within seconds.
 - **Survives unclean restarts.** Stale virtual-display locks and orphaned browsers are detected and cleared on startup; `run.sh` refuses to start a second instance on a busy port instead of fighting over the browser.
+- **Your keyboard and clipboard, in the remote browser.** Ctrl/Cmd+V pastes your local clipboard into the page, Ctrl/Cmd+C copies whatever you selected in the page back to your device (a paste button covers phones), and every key — including `.`, `,`, `-`, `/` — arrives with the key code a real US keyboard sends.
 - **Graceful tasks.** Exactly one agent task runs at a time; **Stop** terminates it cleanly with no orphans; crashes and timeouts are recorded as failures rather than hanging forever. Full task history is persisted.
 
 ## Why it isn't flagged as a bot 🥷
 
 Headless Chrome is trivially fingerprinted — its User-Agent literally contains `HeadlessChrome` and it exposes no real WebGL context, so sites throw CAPTCHAs and "are you a bot?" walls. Tandem runs Chrome **headful inside an auto-started virtual display (Xvfb)** by default, which yields a clean `Chrome/<version>` User-Agent and a real WebGL renderer.
 
-On top of that, a **stealth init-script** (`stealth.js`) is injected into every page — both the ones you browse and the ones the agent drives — patching the fingerprints that give a server away: it spoofs the software (SwiftShader) WebGL renderer to a plausible consumer GPU, trims `hardwareConcurrency`/`deviceMemory` from datacenter-sized values to laptop-sized ones, restores `window.chrome.runtime`, and locks `navigator.webdriver` false. The result passes the standard [bot.sannysoft.com](https://bot.sannysoft.com) checks cleanly.
+On top of that, Tandem keeps a **stealth CDP session attached to every page and every out-of-process iframe** (so a Cloudflare Turnstile frame sees the same story as the page). Before a document's first script runs it applies native overrides — a stock Google Chrome User-Agent (the snap/Ubuntu build otherwise advertises `Ubuntu` and a `Chromium`-only brand list; Tandem sends `Google Chrome` client hints too), `Emulation.setAutomationOverride`, a laptop-sized `hardwareConcurrency` — and injects `stealth.js`, which spoofs the software (SwiftShader) WebGL renderer to a plausible consumer GPU, trims `deviceMemory`, restores `window.chrome.runtime`, locks `navigator.webdriver` false, and blunts the classic *"is DevTools attached?"* probe (getter-invoking `console.log` arguments) that Playwright's `Runtime.enable` would otherwise expose. The Chrome window is sized so its content area is exactly the 1280×800 viewport inside a 1920×1080 virtual screen — no viewport emulation, so `innerHeight ≤ outerHeight` like a real window. The result passes the standard [bot.sannysoft.com](https://bot.sannysoft.com) checks cleanly.
 
 And when a challenge *does* appear, the agent solves it: with **vision enabled** (`--caps vision`), it screenshots the page, reads image-grid / distorted-text CAPTCHAs, and clicks the right tiles — or clicks the "I'm not a robot" / Turnstile checkbox and waits. If it's genuinely stuck (an OTP to your phone, an account it doesn't have), it stops and hands back to you.
 
@@ -136,9 +137,14 @@ cloudflared tunnel --url http://localhost:8080      # free, gives an https URL
 | `PORT` | `8080` | HTTP port. |
 | `HEADLESS` | `0` | `0` = headful under Xvfb (anti-bot, recommended). `1` = headless (faster, but sites flag it). |
 | `XVFB_DISPLAY` | `:99` | Virtual display used in headful mode when no real `$DISPLAY`. |
-| `SCREENCAST_QUALITY` | `60` | JPEG quality 1–100. Lower = smaller frames for slow tunnels. |
+| `SCREENCAST_QUALITY` | `60` | JPEG quality of the best tier. Tandem steps quality/resolution down automatically when a viewer's frame acks lag, and back up when they recover. |
 | `TASK_TIMEOUT_MIN` | `30` | Hard cap per agent task. |
 | `CHROME_BIN` | `/snap/bin/chromium` | Browser binary (must be ≥ 149). |
+| `CDP_PORT` | `9222` | Chrome's DevTools port; keep `.mcp.json`'s `--cdp-endpoint` in sync. |
+| `DEFAULT_MODEL` / `DEFAULT_EFFORT` | `claude-opus-5` / `medium` | Agent model and reasoning effort when the caller doesn't choose (the UI dropdown offers Opus 5 fast/thorough, Fable 5.1, Sonnet 5, Haiku 4.5). |
+| `AGENT_FAST_MODE` | `1` | Ask Claude Code for fast mode on Opus; a no-op until your org enables it. |
+| `CHROME_PROXY` | — | `socks5://` or `http://` proxy for Chrome — the only fix for a datacenter IP's reputation. |
+| `CHROME_PROFILE_DIR` | `./chrome-profile` | Where cookies/logins live. |
 
 ---
 
@@ -160,6 +166,15 @@ Never log out or change account settings. Stop and report if you hit a CAPTCHA,
 Edit it to change behavior, or drop in more `.claude/agents/*.md` files for specialized agents. No code changes, no restart of your edits needed.
 
 ---
+
+## Visa slot booker
+
+`visa-booker/` adds a US visa appointment booker on top of Tandem.
+`slot_monitor.py` polls the scheduling portal's own availability API from your
+logged-in Tandem tab. When it sees open dates, a Tandem agent books one while you
+watch. You can run it as a daemon (`python visa-booker/booker.py run`) or as a
+Claude Code agent (`claude --agent visa-slot-booker`). Setup is in
+[visa-booker/README.md](visa-booker/README.md).
 
 ## Project layout
 

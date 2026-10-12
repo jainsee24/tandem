@@ -7,3 +7,12 @@ __pycache__/
 scripts/
 node_modules/
 .playwright-mcp/
+uploads/
+# Playwright MCP output dir (agent screenshots)
+output/
+# visa-booker: personal config + runtime state never get committed
+visa-booker/config.json
+visa-booker/.booker_state.json
+visa-booker/.booker_state.tmp
+visa-booker/events.jsonl
+visa-booker/available_slots.txt

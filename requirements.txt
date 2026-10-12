@@ -5,3 +5,4 @@ httpx
 itsdangerous
 python-dotenv
 python-multipart
+requests

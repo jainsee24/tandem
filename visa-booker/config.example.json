@@ -1,0 +1,41 @@
+{
+  "_comment": "Copy to config.json (git-ignored) and fill in. Never commit real credentials.",
+
+  "tandem_url": "http://localhost:8080",
+  "tandem_password": "<your Tandem UI password>",
+  "model": "opus",
+
+  "portal_url": "https://www.usvisascheduling.com/en-US/",
+  "schedule_url": "https://www.usvisascheduling.com/en-US/ofc-schedule/",
+  "reschedule": false,
+
+  "username": "<portal username>",
+  "password": "<portal password>",
+  "security_answers": {
+    "<keyword from security question 1>": "<answer 1>",
+    "<keyword from security question 2>": "<answer 2>"
+  },
+  "applicant_name": "<name exactly as on the application>",
+  "visa_type": "F-1",
+  "locations": ["<OFC location 1>", "<OFC location 2>"],
+  "auto_confirm": false,
+
+  "monitor": {
+    "_comment": "Copy the availability request your own logged-in browser makes (DevTools > Network on the OFC calendar). {endpoint} is substituted.",
+    "base_url": "https://www.usvisascheduling.com/en-US/custom-actions/?route=/api/v1/schedule-group/{endpoint}",
+    "endpoints": ["get-family-ofc-schedule-days"],
+    "method": "POST",
+    "params": {},
+    "data": null,
+    "via_browser": "http://localhost:9222",
+    "delay_seconds": 60
+  },
+
+  "cooldown_minutes": 10,
+  "rate_limit_hold_minutes": 45,
+  "transient_retries": 1,
+  "transient_retry_delay_seconds": 75,
+  "attempt_timeout_minutes": 30,
+
+  "notify_webhook": null
+}

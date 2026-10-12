@@ -5,9 +5,13 @@
 //
 // Targets the tells actually observed on this host:
 //   - WebGL renderer = "SwiftShader" (software rendering → bot/VM signal)
-//   - hardwareConcurrency = 96, deviceMemory = 32 (datacenter, not a laptop)
+//   - deviceMemory = 32 (datacenter, not a laptop). hardwareConcurrency (96)
+//     is handled natively by CDP Emulation.setHardwareConcurrencyOverride in
+//     cdp.py — a native override leaves no patched getter to fingerprint.
 //   - missing window.chrome.runtime
-//   - navigator.webdriver (locked false)
+//   - navigator.webdriver (locked false; also CDP Emulation.setAutomationOverride)
+//   - console.* argument serialisation while a DevTools client (the agent's
+//     Playwright) has Runtime enabled — the classic "CDP detected" probe
 (() => {
   "use strict";
 
@@ -34,9 +38,36 @@
   // ---- navigator.webdriver = false ----
   define(Navigator.prototype, "webdriver", () => false);
 
-  // ---- realistic CPU / RAM (was 96 cores / 32 GB) ----
-  define(Navigator.prototype, "hardwareConcurrency", () => 8);
+  // ---- realistic RAM (was 32 GB); CPU count is overridden natively ----
   define(Navigator.prototype, "deviceMemory", () => 8);
+
+  // ---- blunt the Runtime.enable leak ----
+  // With a DevTools client attached and Runtime enabled (Playwright does this
+  // for every page), chrome serialises console.* arguments for the protocol,
+  // which invokes getters on the logged objects. Detectors log an object with
+  // a getter (or an Error with a `stack` accessor) and watch whether it fires.
+  // Passing only primitives through means there is nothing to serialise.
+  try {
+    const safe = (v) => {
+      const t = typeof v;
+      if (v === null || t === "string" || t === "number" || t === "boolean" || t === "undefined" || t === "bigint") return v;
+      if (t === "symbol") return String(v);
+      if (t === "function") return "function " + (v.name || "") + "() { [native code] }";
+      if (v instanceof Error) {
+        try { return v.name + ": " + v.message; } catch (e) { return "Error"; }
+      }
+      try { return Object.prototype.toString.call(v); } catch (e) { return "[object]"; }
+    };
+    for (const m of ["log", "debug", "info", "warn", "error", "trace", "dir", "dirxml", "table", "group", "groupCollapsed", "assert"]) {
+      const orig = console[m];
+      if (typeof orig !== "function") continue;
+      console[m] = asNative(function () {
+        const args = new Array(arguments.length);
+        for (let i = 0; i < arguments.length; i++) args[i] = safe(arguments[i]);
+        return orig.apply(this, args);
+      }, m);
+    }
+  } catch (e) {}
 
   // ---- window.chrome.runtime (real Chrome exposes it) ----
   try {

@@ -3,9 +3,12 @@
     "browser": {
       "command": "node_modules/.bin/playwright-mcp",
       "args": [
-        "--cdp-endpoint", "http://localhost:9222",
-        "--init-script", "stealth.js",
-        "--caps", "vision"
+        "--cdp-endpoint",
+        "http://localhost:9333",
+        "--caps",
+        "vision",
+        "--output-dir",
+        "output"
       ]
     }
   }

@@ -4,7 +4,11 @@ Finds open US visa appointment dates and books one with a Tandem agent, in the
 browser you're watching.
 
 - **Finding slots:** `slot_monitor.py` polls the scheduling portal's own
-  availability API (the OFC `schedule-days` / `schedule-entries` endpoints). It sends those requests from your logged-in Tandem
+  availability API, the OFC endpoints:
+  - `https://www.usvisascheduling.com/en-US/custom-actions/?route=/api/v1/schedule-group/get-family-ofc-schedule-days`
+  - `https://www.usvisascheduling.com/en-US/custom-actions/?route=/api/v1/schedule-group/get-family-ofc-schedule-entries`
+
+   It sends those requests from your logged-in Tandem
   tab over CDP, so they use the session you already have. No alert emails, no
   third-party slot sites, and nothing is copied out of the browser.
 - **Booking:** when the monitor sees dates, `booker.py` starts a Tandem agent

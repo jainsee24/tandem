@@ -23,7 +23,7 @@
   "monitor": {
     "_comment": "Copy the availability request your own logged-in browser makes (DevTools > Network on the OFC calendar). {endpoint} is substituted.",
     "base_url": "https://www.usvisascheduling.com/en-US/custom-actions/?route=/api/v1/schedule-group/{endpoint}",
-    "endpoints": ["get-family-ofc-schedule-days"],
+    "endpoints": ["get-family-ofc-schedule-days", "get-family-ofc-schedule-entries"],
     "method": "POST",
     "params": {},
     "data": null,

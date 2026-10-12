@@ -76,7 +76,8 @@ class Status(str, Enum):
 
 @dataclass(frozen=True)
 class Settings:
-    base_url: str = 'https://example.com/api/v1/schedule-group'
+    base_url: str = ('https://www.usvisascheduling.com/en-US/custom-actions/'
+                     '?route=/api/v1/schedule-group/{endpoint}')
     output: Path = Path('available_slots.txt')
     count: int = 10
     delay: float = 15.0
